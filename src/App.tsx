@@ -1,9 +1,19 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './App.scss';
 import { peopleFromServer } from './data/people';
 
 export const App: React.FC = () => {
   const { name, born, died } = peopleFromServer[0];
+  const [query, setQuery] = useState('');
+  const [focus, setFocus] = useState(false);
+
+  const handleQueryChange = (e: React.FormEvent<HTMLInputElement>) => {
+    setQuery(e.currentTarget.value);
+  };
+
+  const filteredList = peopleFromServer.filter(person =>
+    person.name.includes(query),
+  );
 
   return (
     <div className="container">
@@ -16,43 +26,34 @@ export const App: React.FC = () => {
           <div className="dropdown-trigger">
             <input
               type="text"
+              onFocus={() => setFocus(true)}
+              onBlur={() => setFocus(false)}
               placeholder="Enter a part of the name"
               className="input"
               data-cy="search-input"
+              onChange={handleQueryChange}
             />
           </div>
 
-          <div className="dropdown-menu" role="menu" data-cy="suggestions-list">
-            <div className="dropdown-content">
-              <div className="dropdown-item" data-cy="suggestion-item">
-                <p className="has-text-link">Pieter Haverbeke</p>
-              </div>
-
-              <div className="dropdown-item" data-cy="suggestion-item">
-                <p className="has-text-link">Pieter Bernard Haverbeke</p>
-              </div>
-
-              <div className="dropdown-item" data-cy="suggestion-item">
-                <p className="has-text-link">Pieter Antone Haverbeke</p>
-              </div>
-
-              <div className="dropdown-item" data-cy="suggestion-item">
-                <p className="has-text-danger">Elisabeth Haverbeke</p>
-              </div>
-
-              <div className="dropdown-item" data-cy="suggestion-item">
-                <p className="has-text-link">Pieter de Decker</p>
-              </div>
-
-              <div className="dropdown-item" data-cy="suggestion-item">
-                <p className="has-text-danger">Petronella de Decker</p>
-              </div>
-
-              <div className="dropdown-item" data-cy="suggestion-item">
-                <p className="has-text-danger">Elisabeth Hercke</p>
+          {focus && (
+            <div
+              className="dropdown-menu"
+              role="menu"
+              data-cy="suggestions-list"
+            >
+              <div className="dropdown-content">
+                {filteredList.map(person => (
+                  <div
+                    key={person.slug}
+                    className="dropdown-item"
+                    data-cy="suggestion-item"
+                  >
+                    <p className="has-text-link">{person.name}</p>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         <div
@@ -66,7 +67,15 @@ export const App: React.FC = () => {
           role="alert"
           data-cy="no-suggestions-message"
         >
-          <p className="has-text-danger">No matching suggestions</p>
+          {query.length === 0 || filteredList.length === 0 ? (
+            <p className="has-text-danger">No matching suggestions</p>
+          ) : (
+            filteredList.map(el => (
+              <p key={el.name} className="has-text-danger">
+                {el.name}
+              </p>
+            ))
+          )}
         </div>
       </main>
     </div>
